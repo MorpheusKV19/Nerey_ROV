@@ -25,3 +25,8 @@ Development of a robotic ROV to perform various tasks in the underwater environm
 ### 📑 Resource costs
 
 ![Resource costs](https://github.com/user-attachments/assets/77230938-04ce-48a4-9769-2aef951e9459)
+
+### 🛐 [Dependencies:](https://www.arduino.cc/en/software)
+* [PsxNewLib](https://github.com/SukkoPera/PsxNewLib)
+* [DigitalIO](https://github.com/greiman/DigitalIO) 
+* [SoftServo](https://github.com/GyverLibs/SoftServo) 
