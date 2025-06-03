@@ -18,3 +18,6 @@ Development of a robotic ROV to perform various tasks in the underwater environm
 
 ### 🖼 Schematic
 ![Schematic](https://github.com/user-attachments/assets/e270af2c-6f6a-4270-bafc-b7785c1e34ed)
+
+### 🖼 Drawings of board
+![Drawings of board](https://github.com/user-attachments/assets/8484fff8-9bd3-4981-abd4-018c693504ff)
