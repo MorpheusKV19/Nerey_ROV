@@ -1,4 +1,4 @@
-![Nerey_ROV](https://github.com/user-attachments/assets/effc6947-d1ef-42bc-8c28-919f9c01553d)
+![Nerey](https://github.com/user-attachments/assets/effc6947-d1ef-42bc-8c28-919f9c01553d)
 
 # 🚤 Nerey ROV
 
@@ -13,3 +13,8 @@ Development of a robotic ROV to perform various tasks in the underwater environm
 * Control system
 * Cable - rope
 * Propulsion and steering components
+
+![ROV](https://github.com/user-attachments/assets/d72040e1-913c-47f5-8d34-cff7aee9ed3a)
+
+### 🖼 Schematic
+![Schematic](https://github.com/user-attachments/assets/e270af2c-6f6a-4270-bafc-b7785c1e34ed)
