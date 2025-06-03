@@ -21,3 +21,7 @@ Development of a robotic ROV to perform various tasks in the underwater environm
 
 ### 🖼 Drawings of board
 ![Drawings of board](https://github.com/user-attachments/assets/8484fff8-9bd3-4981-abd4-018c693504ff)
+
+### 📑 Resource costs
+
+![Resource costs](https://github.com/user-attachments/assets/77230938-04ce-48a4-9769-2aef951e9459)
