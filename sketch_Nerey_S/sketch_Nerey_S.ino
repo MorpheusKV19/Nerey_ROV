@@ -29,12 +29,20 @@ int filterAxis(byte axis) {
   return val;
 }
 
-int8_t getLeftPower(int y, int x) {
-  return constrain(y - x, -MAX_POWER, MAX_POWER);
+int8_t getLeftPower1(int y, int x, int w) {
+  return constrain(y + x + w, -MAX_POWER, MAX_POWER);
 }
 
-int8_t getRightPower(int y, int x) {
-  return constrain(y + x, -MAX_POWER, MAX_POWER);
+int8_t getRightPower1(int y, int x, int w) {
+  return constrain(y - x - w, -MAX_POWER, MAX_POWER);
+}
+
+int8_t getLeftPower2(int y, int x, int w) {
+  return constrain(y - x + w, -MAX_POWER, MAX_POWER);
+}
+
+int8_t getRightPower2(int y, int x, int w) {
+  return constrain(y + x - w, -MAX_POWER, MAX_POWER);
 }
 
 int8_t getVerticalPower(int z) {
@@ -90,10 +98,11 @@ int8_t getMotorButton() {
 void loop() {
   readGamepad();
 
-  int y, x, z = 0;
+  int y, x, z, w = 0;
   y = filterAxis(stickLY);
   x = filterAxis(stickLX);
   z = filterAxis(stickRY);
+  w = filterAxis(stickRX);
 
 #ifdef DEBUG_OUTPUT
   printButtons();
@@ -105,6 +114,8 @@ void loop() {
   SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.print(getStickState(stickRY));
   SERIAL_DEBUG.print("\t");
+  SERIAL_DEBUG.print(getStickState(stickRX));
+  SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.println("");
 
   SERIAL_DEBUG.print("\t");
@@ -114,20 +125,24 @@ void loop() {
   SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.print(z);
   SERIAL_DEBUG.print("\t");
+  SERIAL_DEBUG.print(w);
+  SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.println("");
 #endif
 
-  uint8_t buffer[8];
+  uint8_t buffer[10];
   buffer[0] = START_BYTE;
-  buffer[1] = getLeftPower(y, x) / getSpeedDivider();
-  buffer[2] = getRightPower(y, x) / getSpeedDivider();
-  buffer[3] = getVerticalPower(z) / getSpeedDivider();
-  buffer[4] = getCamera();
-  buffer[5] = getManipulator();
-  buffer[6] = getMotorButton();
-  buffer[7] = END_BYTE;
+  buffer[1] = getLeftPower1(y, x, w) / getSpeedDivider();
+  buffer[2] = getRightPower1(y, x, w) / getSpeedDivider();
+  buffer[3] = getLeftPower2(y, x, w) / getSpeedDivider();
+  buffer[4] = getRightPower2(y, x, w) / getSpeedDivider();
+  buffer[5] = getVerticalPower(z) / getSpeedDivider();
+  buffer[6] = getCamera();
+  buffer[7] = getManipulator();
+  buffer[8] = getMotorButton();
+  buffer[9] = END_BYTE;
 
-  SERIAL_CONTROL.write(buffer, 8);
+  SERIAL_CONTROL.write(buffer, 10);
 
   SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.print((int8_t)buffer[1]);
@@ -141,6 +156,10 @@ void loop() {
   SERIAL_DEBUG.print((int8_t)buffer[5]);
   SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.print((int8_t)buffer[6]);
+  SERIAL_DEBUG.print("\t");
+  SERIAL_DEBUG.print((int8_t)buffer[7]);
+  SERIAL_DEBUG.print("\t");
+  SERIAL_DEBUG.print((int8_t)buffer[8]);
   SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.print(" / ");
   SERIAL_DEBUG.println(getSpeedDivider());
