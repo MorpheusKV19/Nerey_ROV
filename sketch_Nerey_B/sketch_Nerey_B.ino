@@ -3,8 +3,6 @@
 #include "Camera.h"
 #include "SoftwareSerial.h"
 
-#define RS485_CONTROL_PIN 2
-
 #define LEFT_MOTOR_PIN1 3
 #define RIGHT_MOTOR_PIN1 4
 #define LEFT_MOTOR_PIN2 5
@@ -34,9 +32,7 @@ void setup() {
   Serial.begin(9600);
   RS485.begin(9600);
   Serial.println("Setup");
-  // RS485.println("Setup");
-  pinMode(RS485_CONTROL_PIN, OUTPUT);
-  digitalWrite(RS485_CONTROL_PIN, HIGH);
+  RS485.println("Setup");
   leftMotor1.init();
   rightMotor1.init();
   leftMotor2.init();
@@ -47,7 +43,6 @@ void setup() {
   manipulator.init();
   delay(1000);
 
-  digitalWrite(RS485_CONTROL_PIN, LOW);
   Serial.println("Entering loop");
 }
 
