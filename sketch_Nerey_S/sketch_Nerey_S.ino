@@ -9,7 +9,6 @@ SoftwareSerial RS485(RX, TX);
 #define SERIAL_DEBUG Serial
 #define SERIAL_CONTROL RS485
 
-#define RS485_CONTROL_PIN 2
 #define START_BYTE 0xFE
 #define END_BYTE 0xEF
 
@@ -83,10 +82,6 @@ int8_t getSpeedDivider() {
 void setup() {
   SERIAL_CONTROL.begin(9600);
   SERIAL_DEBUG.begin(9600);
-
-  pinMode(RS485_CONTROL_PIN, OUTPUT);
-  digitalWrite(RS485_CONTROL_PIN, HIGH);
-
   SERIAL_DEBUG.println(F("Starting MiddleROV…"));
 }
 
