@@ -1,7 +1,7 @@
 #include "Manipulator.h"
 #include "Dvig.h"
 #include "Camera.h"
-#include "SoftwareSerial.h"
+#include <GyverTransfer.h>
 
 #define LEFT_MOTOR_PIN1 3
 #define RIGHT_MOTOR_PIN1 4
@@ -13,8 +13,7 @@
 #define MANIPULATOR_PIN 9
 #define CAMERA_PIN 10
 
-#define RX 11
-#define TX 12
+#define RX_PIN 2
 
 Dvig leftMotor1(LEFT_MOTOR_PIN1);
 Dvig rightMotor1(RIGHT_MOTOR_PIN1);
@@ -25,14 +24,22 @@ Dvig verticalMotor2(VERTICAL_MOTOR_PIN2);
 
 Camera camera(CAMERA_PIN);
 Manipulator manipulator(MANIPULATOR_PIN);
+GyverTransfer<RX_PIN, GT_RX, 5000, 20> rx;
 
-SoftwareSerial RS485(RX, TX);
+struct Data {
+  int8_t lm1;
+  int8_t rm1;
+  int8_t lm2;
+  int8_t rm2;
+  int8_t vm;
+  int8_t c;
+  int8_t m;
+};
 
 void setup() {
   Serial.begin(9600);
-  RS485.begin(9600);
   Serial.println("Setup");
-  RS485.println("Setup");
+  attachInterrupt(digitalPinToInterrupt(RX_PIN), isr, CHANGE);
   leftMotor1.init();
   rightMotor1.init();
   leftMotor2.init();
@@ -42,60 +49,50 @@ void setup() {
   camera.init();
   manipulator.init();
   delay(1000);
-
   Serial.println("Entering loop");
 }
 
-#define START_BYTE 0xFE
-#define END_BYTE 0xEF
+void isr() {
+  rx.tickISR();
+}
 
 #define DEBUG
 
 void loop() {
   camera.tick();
   manipulator.tick();
-  if (RS485.available()) {
+  if (rx.gotData()) {
     digitalWrite(LED_BUILTIN, HIGH);
-    uint8_t first_received_byte = 0;
-    RS485.readBytes(&first_received_byte, 1);
-    if (first_received_byte != START_BYTE) {
-      Serial.println("ERROR (wrong first byte)");
-      return;
-    }
+    Data data;
+    if (rx.readDataCRC(data)) {
+      leftMotor1.set_power(data.lm1);
+      rightMotor1.set_power(-data.rm1);
+      leftMotor2.set_power(data.lm2);
+      rightMotor2.set_power(-data.rm2);
+      verticalMotor1.set_power(data.vm);
+      verticalMotor2.set_power(-data.vm);
+      camera.rotate(data.c * 3);
+      manipulator.rotate(data.m * 20);
 
-    uint8_t buffer[10] = {};
-    buffer[0] = first_received_byte;
-    RS485.readBytes(buffer + 1, 9);
-
-    if (buffer[0] == START_BYTE && buffer[9] == END_BYTE) {
-      leftMotor1.set_power(buffer[1]);
-      rightMotor1.set_power(-buffer[2]);
-      leftMotor2.set_power(buffer[3]);
-      rightMotor2.set_power(-buffer[4]);
-      verticalMotor1.set_power(buffer[5]);
-      verticalMotor2.set_power(-buffer[5]);
-      camera.rotate(buffer[6] * 3);
-      manipulator.rotate(buffer[7] * 20);
 #ifdef DEBUG
-      Serial.print((int8_t)buffer[1]);
+      Serial.print(data.lm1);
       Serial.print(" ");
-      Serial.print((int8_t)buffer[2]);
+      Serial.print(data.rm1);
       Serial.print(" ");
-      Serial.print((int8_t)buffer[3]);
+      Serial.print(data.lm2);
       Serial.print(" ");
-      Serial.print((int8_t)buffer[4]);
+      Serial.print(data.rm2);
       Serial.print(" ");
-      Serial.print((int8_t)buffer[5]);
+      Serial.print(data.vm);
       Serial.print(" ");
-      Serial.println((int8_t)buffer[6]);
+      Serial.print(data.c);
       Serial.print(" ");
-      Serial.println((int8_t)buffer[7]);
-      Serial.print(" ");
-      Serial.println((int8_t)buffer[8]);
-#endif  // DEBUG
+      Serial.println(data.m);
+#endif
+
     } else {
       Serial.println("ERROR");
-      Serial.println(RS485.readString());
     }
+    rx.clearBuffer();
   }
 }

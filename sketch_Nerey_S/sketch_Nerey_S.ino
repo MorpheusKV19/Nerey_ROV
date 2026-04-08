@@ -1,16 +1,12 @@
 #include "GamepadUtils.h"
-#include "SoftwareSerial.h"
 
-#define RX 8
-#define TX 11
+#define TX_PIN 11
+#define GT_MICRO_TX
 
-SoftwareSerial RS485(RX, TX);
+#include <GyverTransfer.h>
+GyverTransfer<TX_PIN, GT_TX, 5000> tx;
 
 #define SERIAL_DEBUG Serial
-#define SERIAL_CONTROL RS485
-
-#define START_BYTE 0xFE
-#define END_BYTE 0xEF
 
 constexpr int MAX_POWER = 100;
 
@@ -79,15 +75,20 @@ int8_t getSpeedDivider() {
   }
 }
 
-void setup() {
-  SERIAL_CONTROL.begin(9600);
+struct Data {
+  int8_t lm1;
+  int8_t rm1;
+  int8_t lm2;
+  int8_t rm2;
+  int8_t vm;
+  int8_t c;
+  int8_t m;
+};
+
+void
+setup() {
   SERIAL_DEBUG.begin(9600);
   SERIAL_DEBUG.println(F("Starting MiddleROV…"));
-}
-
-int8_t getMotorButton() {
-  int speed = 1;
-  return checkBtn(buttonTriangle, buttonCross) * speed;
 }
 
 void loop() {
@@ -125,36 +126,31 @@ void loop() {
   SERIAL_DEBUG.println("");
 #endif
 
-  uint8_t buffer[10];
-  buffer[0] = START_BYTE;
-  buffer[1] = getLeftPower1(y, x, w) / getSpeedDivider();
-  buffer[2] = getRightPower1(y, x, w) / getSpeedDivider();
-  buffer[3] = getLeftPower2(y, x, w) / getSpeedDivider();
-  buffer[4] = getRightPower2(y, x, w) / getSpeedDivider();
-  buffer[5] = getVerticalPower(z) / getSpeedDivider();
-  buffer[6] = getCamera();
-  buffer[7] = getManipulator();
-  buffer[8] = getMotorButton();
-  buffer[9] = END_BYTE;
+  Data data;
+  data.lm1 = getLeftPower1(y, x, w) / getSpeedDivider();
+  data.rm1 = getRightPower1(y, x, w) / getSpeedDivider();
+  data.lm2 = getLeftPower2(y, x, w) / getSpeedDivider();
+  data.rm2 = getRightPower2(y, x, w) / getSpeedDivider();
+  data.vm = getVerticalPower(z) / getSpeedDivider();
+  data.c = getCamera();
+  data.m = getManipulator();
 
-  SERIAL_CONTROL.write(buffer, 10);
+  tx.writeDataCRC(data);
 
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[1]);
+  SERIAL_DEBUG.print(data.lm1);
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[2]);
+  SERIAL_DEBUG.print(data.rm1);
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[3]);
+  SERIAL_DEBUG.print(data.lm2);
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[4]);
+  SERIAL_DEBUG.print(data.rm2);
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[5]);
+  SERIAL_DEBUG.print(data.vm);
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[6]);
+  SERIAL_DEBUG.print(data.c);
   SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[7]);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print((int8_t)buffer[8]);
+  SERIAL_DEBUG.println(data.m);
   SERIAL_DEBUG.print("\t");
   SERIAL_DEBUG.print(" / ");
   SERIAL_DEBUG.println(getSpeedDivider());
