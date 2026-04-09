@@ -1,12 +1,7 @@
 #include "GamepadUtils.h"
+#include <GW_TX.h>
 
 #define TX_PIN 11
-#define GT_MICRO_TX
-
-#include <GyverTransfer.h>
-GyverTransfer<TX_PIN, GT_TX, 5000> tx;
-
-#define SERIAL_DEBUG Serial
 
 constexpr int MAX_POWER = 100;
 
@@ -85,10 +80,11 @@ struct Data {
   int8_t m;
 };
 
-void
-setup() {
-  SERIAL_DEBUG.begin(9600);
-  SERIAL_DEBUG.println(F("Starting MiddleROV…"));
+GW_TX<TX_PIN> tx;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println(F("Starting MiddleROV…"));
 }
 
 void loop() {
@@ -103,27 +99,27 @@ void loop() {
 #ifdef DEBUG_OUTPUT
   printButtons();
 
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(getStickState(stickLY));
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(getStickState(stickLX));
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(getStickState(stickRY));
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(getStickState(stickRX));
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.println("");
+  Serial.print("\t");
+  Serial.print(getStickState(stickLY));
+  Serial.print("\t");
+  Serial.print(getStickState(stickLX));
+  Serial.print("\t");
+  Serial.print(getStickState(stickRY));
+  Serial.print("\t");
+  Serial.print(getStickState(stickRX));
+  Serial.print("\t");
+  Serial.println("");
 
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(y);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(x);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(z);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(w);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.println("");
+  Serial.print("\t");
+  Serial.print(y);
+  Serial.print("\t");
+  Serial.print(x);
+  Serial.print("\t");
+  Serial.print(z);
+  Serial.print("\t");
+  Serial.print(w);
+  Serial.print("\t");
+  Serial.println("");
 #endif
 
   Data data;
@@ -135,25 +131,27 @@ void loop() {
   data.c = getCamera();
   data.m = getManipulator();
 
-  tx.writeDataCRC(data);
+  noInterrupts();
+  tx.sendPacket(data);
+  interrupts();
 
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(data.lm1);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(data.rm1);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(data.lm2);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(data.rm2);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(data.vm);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(data.c);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.println(data.m);
-  SERIAL_DEBUG.print("\t");
-  SERIAL_DEBUG.print(" / ");
-  SERIAL_DEBUG.println(getSpeedDivider());
+  Serial.print("\t");
+  Serial.print(data.lm1);
+  Serial.print("\t");
+  Serial.print(data.rm1);
+  Serial.print("\t");
+  Serial.print(data.lm2);
+  Serial.print("\t");
+  Serial.print(data.rm2);
+  Serial.print("\t");
+  Serial.print(data.vm);
+  Serial.print("\t");
+  Serial.print(data.c);
+  Serial.print("\t");
+  Serial.println(data.m);
+  Serial.print("\t");
+  Serial.print(" / ");
+  Serial.println(getSpeedDivider());
 
   delay(50);
 }

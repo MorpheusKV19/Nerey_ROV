@@ -1,7 +1,9 @@
 #include "Manipulator.h"
 #include "Dvig.h"
 #include "Camera.h"
-#include <GyverTransfer.h>
+#include <GW_RX.h>
+
+#define RX_PIN 2
 
 #define LEFT_MOTOR_PIN1 3
 #define RIGHT_MOTOR_PIN1 4
@@ -13,7 +15,7 @@
 #define MANIPULATOR_PIN 9
 #define CAMERA_PIN 10
 
-#define RX_PIN 2
+#define DEBUG
 
 Dvig leftMotor1(LEFT_MOTOR_PIN1);
 Dvig rightMotor1(RIGHT_MOTOR_PIN1);
@@ -24,7 +26,7 @@ Dvig verticalMotor2(VERTICAL_MOTOR_PIN2);
 
 Camera camera(CAMERA_PIN);
 Manipulator manipulator(MANIPULATOR_PIN);
-GyverTransfer<RX_PIN, GT_RX, 5000, 20> rx;
+GW_RX<RX_PIN> rx;
 
 struct Data {
   int8_t lm1;
@@ -38,8 +40,8 @@ struct Data {
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Setup");
-  attachInterrupt(digitalPinToInterrupt(RX_PIN), isr, CHANGE);
+  Serial.println(F("Setup"));
+  attachInterrupt(digitalPinToInterrupt(RX_PIN), []() { rx.pinChange(); }, CHANGE);
   leftMotor1.init();
   rightMotor1.init();
   leftMotor2.init();
@@ -49,50 +51,43 @@ void setup() {
   camera.init();
   manipulator.init();
   delay(1000);
-  Serial.println("Entering loop");
-}
+  Serial.println(F("Entering loop"));
 
-void isr() {
-  rx.tickISR();
-}
+  rx.onPacket([](uint8_t type, void* data, size_t len) {
+    if (sizeof(Data) != len) { Serial.println(F("ERROR")); return; }
+    digitalWrite(LED_BUILTIN, HIGH);
+    Data& d = *((Data*)data);
 
-#define DEBUG
+    leftMotor1.set_power(d.lm1);
+    rightMotor1.set_power(-d.rm1);
+    leftMotor2.set_power(d.lm2);
+    rightMotor2.set_power(-d.rm2);
+    verticalMotor1.set_power(d.vm);
+    verticalMotor2.set_power(-d.vm);
+    camera.rotate(d.c * 3);
+    manipulator.rotate(d.m * 20);
+
+#ifdef DEBUG
+    Serial.print(static_cast<Data*>(data)->lm1);
+    Serial.print(F("\t"));
+    Serial.print(static_cast<Data*>(data)->rm1);
+    Serial.print(F("\t"));
+    Serial.print(static_cast<Data*>(data)->lm2);
+    Serial.print(F("\t"));
+    Serial.print(static_cast<Data*>(data)->rm2);
+    Serial.print(F("\t"));
+    Serial.print(static_cast<Data*>(data)->vm);
+    Serial.print(F("\t"));
+    Serial.print(static_cast<Data*>(data)->c);
+    Serial.print(F("\t"));
+    Serial.println(static_cast<Data*>(data)->m);
+#endif
+
+  });
+}
 
 void loop() {
   camera.tick();
   manipulator.tick();
-  if (rx.gotData()) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    Data data;
-    if (rx.readDataCRC(data)) {
-      leftMotor1.set_power(data.lm1);
-      rightMotor1.set_power(-data.rm1);
-      leftMotor2.set_power(data.lm2);
-      rightMotor2.set_power(-data.rm2);
-      verticalMotor1.set_power(data.vm);
-      verticalMotor2.set_power(-data.vm);
-      camera.rotate(data.c * 3);
-      manipulator.rotate(data.m * 20);
-
-#ifdef DEBUG
-      Serial.print(data.lm1);
-      Serial.print(" ");
-      Serial.print(data.rm1);
-      Serial.print(" ");
-      Serial.print(data.lm2);
-      Serial.print(" ");
-      Serial.print(data.rm2);
-      Serial.print(" ");
-      Serial.print(data.vm);
-      Serial.print(" ");
-      Serial.print(data.c);
-      Serial.print(" ");
-      Serial.println(data.m);
-#endif
-
-    } else {
-      Serial.println("ERROR");
-    }
-    rx.clearBuffer();
-  }
+  rx.tick();
 }
