@@ -148,7 +148,7 @@ void loop() {
   Serial.print("\t");
   Serial.print(data.c);
   Serial.print("\t");
-  Serial.println(data.m);
+  Serial.print(data.m);
   Serial.print("\t");
   Serial.print(" / ");
   Serial.println(getSpeedDivider());
