@@ -43,7 +43,7 @@ void Camera::rotate(int8_t angle) {
     m_angle = constrain(m_angle, 10, 170);
     m_driver.attach(m_pin);
     m_driver.write(m_angle);
-    m_driwer.detach();
+    m_driver.detach();
   }
 }
 
