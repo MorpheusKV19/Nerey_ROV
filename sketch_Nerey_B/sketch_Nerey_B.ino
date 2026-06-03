@@ -5,14 +5,14 @@
 
 #define RX_PIN 2
 
-#define LEFT_MOTOR_PIN1 3
-#define RIGHT_MOTOR_PIN1 4
-#define LEFT_MOTOR_PIN2 5
-#define RIGHT_MOTOR_PIN2 6
-#define VERTICAL_MOTOR_PIN1 7
-#define VERTICAL_MOTOR_PIN2 8
+#define LEFT_MOTOR_PIN1 5
+#define RIGHT_MOTOR_PIN1 3
+#define LEFT_MOTOR_PIN2 9
+#define RIGHT_MOTOR_PIN2 7
+#define VERTICAL_MOTOR_PIN1 11
+#define VERTICAL_MOTOR_PIN2 13
 
-#define MANIPULATOR_PIN 9
+#define MANIPULATOR_PIN 12
 #define CAMERA_PIN 10
 
 #define DEBUG
@@ -87,7 +87,5 @@ void setup() {
 }
 
 void loop() {
-  camera.tick();
-  manipulator.tick();
   rx.tick();
 }

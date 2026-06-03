@@ -2,7 +2,7 @@
 #pragma once
 #include "Motor.h"
 #include "Timer.h"
-#include <SoftServo.h>
+#include <Servo.h>
 
 class Manipulator : public Motor {
 public:
@@ -14,7 +14,7 @@ public:
 private:
   uint8_t m_pin;
   Timer m_timer;
-  SoftServo m_driver;
+  Servo m_driver;
 };
 
 Manipulator::Manipulator(uint8_t pin) {
@@ -23,7 +23,6 @@ Manipulator::Manipulator(uint8_t pin) {
 
 void Manipulator::init() {
   m_driver.attach(m_pin);
-  m_driver.delayMode();
   m_driver.writeMicroseconds(1500);
   m_timer.start();
 }
@@ -45,8 +44,4 @@ void Manipulator::rotate(int8_t power) {
     m_timer.start();
     m_driver.writeMicroseconds(pulse);
   }
-}
-
-void Manipulator::tick() {
-  m_driver.tick();
 }

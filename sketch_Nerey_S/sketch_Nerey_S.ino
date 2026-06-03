@@ -108,7 +108,7 @@ void loop() {
   Serial.print("\t");
   Serial.print(getStickState(stickRX));
   Serial.print("\t");
-  Serial.println("");
+  Serial.println("  ");
 
   Serial.print("\t");
   Serial.print(y);
